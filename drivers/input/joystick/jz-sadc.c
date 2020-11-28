@@ -177,19 +177,19 @@ static int jz_joystick_probe(struct platform_device *pdev)
 	}
 	joystick->input_dev = input_dev;
 
-	input_dev->name = "analog joystick";
+	input_dev->name = "joystick";
 	input_dev->id.bustype = BUS_HOST;
 	input_dev->dev.parent = &pdev->dev;
 
-	__set_bit(EV_ABS, input_dev->evbit);
-	input_set_abs_params(input_dev, ABS_X, JOYSTICK_MIN_X1, JOYSTICK_MAX_X1,
-			     JOYSTICK_NOISE_X1, JOYSTICK_FLAT_X1);
-	input_set_abs_params(input_dev, ABS_Y, JOYSTICK_MIN_Y1, JOYSTICK_MAX_Y1,
-			     JOYSTICK_NOISE_Y1, JOYSTICK_FLAT_Y1);
-	input_set_abs_params(input_dev, ABS_RX, JOYSTICK_MIN_X2, JOYSTICK_MAX_X2,
-			     JOYSTICK_NOISE_X2, JOYSTICK_FLAT_X2);
-	input_set_abs_params(input_dev, ABS_RY, JOYSTICK_MIN_Y2, JOYSTICK_MAX_Y2,
-			     JOYSTICK_NOISE_Y2, JOYSTICK_FLAT_Y2);
+//	__set_bit(EV_ABS, input_dev->evbit);
+//	input_set_abs_params(input_dev, ABS_X, JOYSTICK_MIN_X1, JOYSTICK_MAX_X1,
+//			     JOYSTICK_NOISE_X1, JOYSTICK_FLAT_X1);
+//	input_set_abs_params(input_dev, ABS_Y, JOYSTICK_MIN_Y1, JOYSTICK_MAX_Y1,
+//			     JOYSTICK_NOISE_Y1, JOYSTICK_FLAT_Y1);
+//	input_set_abs_params(input_dev, ABS_RX, JOYSTICK_MIN_X2, JOYSTICK_MAX_X2,
+//			     JOYSTICK_NOISE_X2, JOYSTICK_FLAT_X2);
+//	input_set_abs_params(input_dev, ABS_RY, JOYSTICK_MIN_Y2, JOYSTICK_MAX_Y2,
+//			     JOYSTICK_NOISE_Y2, JOYSTICK_FLAT_Y2);
 
 	input_set_drvdata(input_dev, joystick);
 	input_dev->open = jz_joystick_open;

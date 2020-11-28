@@ -35,7 +35,7 @@
 #include <asm/reboot.h>
 
 #include <linux/mmc/host.h>
-#include <linux/act8600_power.h>
+//#include <linux/act8600_power.h>
 #include <linux/platform_data/jz4770_fb.h>
 #include <linux/platform_data/linkdev.h>
 #include <linux/platform_data/mxc6225.h>
@@ -48,7 +48,7 @@
 #include <linux/regulator/machine.h>
 #include <linux/rfkill-regulator.h>
 #include <linux/usb/musb.h>
-#include <media/radio-rda5807.h>
+//#include <media/radio-rda5807.h>
 #include <sound/jz4770.h>
 #include <video/jzpanel.h>
 
@@ -345,19 +345,19 @@ static struct gpio_keys_button gcw0_buttons[] = {
 		.debounce_interval	= 10,
 	},
 
-	/* L3 */ {
-		.gpio			= JZ_GPIO_PORTB(14),
-		.active_low		= 1,
-		.code			= KEY_KPSLASH,
-		.debounce_interval	= 10,
-	},
+//	/* L3 */ {
+//	.gpio			= JZ_GPIO_PORTB(14),
+//	.active_low		= 1,
+//		.code			= KEY_KPSLASH,
+//		.debounce_interval	= 10,
+//	},
 	
-	/* R3 */ {
-		.gpio			= JZ_GPIO_PORTB(15),
-		.active_low		= 1,
-		.code			= KEY_KPDOT,
-		.debounce_interval	= 10,
-	},
+//	/* R3 */ {
+//		.gpio			= JZ_GPIO_PORTB(15),
+//		.active_low		= 1,
+//		.code			= KEY_KPDOT,
+//		.debounce_interval	= 10,
+//	},
 
 	
 	/* VOL_UP */ {
@@ -419,10 +419,10 @@ static struct jz_mmc_platform_data gcw_external_sd_data = {
 
 /* FM radio receiver */
 
-static struct rda5807_platform_data gcw0_rda5807_pdata = {
-	.input_flags		= RDA5807_INPUT_LNA_WC_25 | RDA5807_LNA_PORT_P,
-	.output_flags		= RDA5807_OUTPUT_AUDIO_ANALOG,
-};
+//static struct rda5807_platform_data gcw0_rda5807_pdata = {
+//	.input_flags		= RDA5807_INPUT_LNA_WC_25 | RDA5807_LNA_PORT_P,
+//	.output_flags		= RDA5807_OUTPUT_AUDIO_ANALOG,
+//};
 
 
 /* Power Management Unit */
@@ -449,8 +449,8 @@ static struct jz_battery_platform_data gcw0_battery_pdata = {
 	.info = {
 		.name = "battery",
 		.technology = POWER_SUPPLY_TECHNOLOGY_LIPO,
-		.voltage_max_design = 3900000,
-		.voltage_min_design = 3300000,
+		.voltage_max_design = 4200000,
+		.voltage_min_design = 3310000,
 	},
 };
 
@@ -547,20 +547,20 @@ static struct jz_otg_board_data gcw0_otg_board_data = {
  * Select which I2C busses use a hardware adapter (i2c-jz4770) and which use
  * a software adapter (i2c-gpio).
  */
-#if defined(CONFIG_I2C_JZ4770)
-#define I2C0_USE_HW	1
-#define I2C1_USE_HW	1
-#else
-#define I2C0_USE_HW	0
-#define I2C1_USE_HW	0
-#endif
+//#if defined(CONFIG_I2C_JZ4770)
+//#define I2C0_USE_HW	1
+//#define I2C1_USE_HW	1
+//#else
+//#define I2C0_USE_HW	0
+//#define I2C1_USE_HW	0
+//#endif
 
 static struct i2c_board_info gcw0_i2c0_devs[] __initdata = {
-	{
-		.type		= "radio-rda5807",
-		.addr		= RDA5807_I2C_ADDR,
-		.platform_data	= &gcw0_rda5807_pdata,
-	},
+	//{
+	//	.type		= "radio-rda5807",
+	//	.addr		= RDA5807_I2C_ADDR,
+	//	.platform_data	= &gcw0_rda5807_pdata,
+	//},
 };
 
 /* We don't have a use for the INT pin yet. */
@@ -586,15 +586,15 @@ static struct i2c_board_info gcw0_i2c4_devs[] __initdata = {
 
 /* I2C busses */
 
-static struct i2c_jz4770_platform_data gcw0_i2c0_platform_data __initdata = {
-	.use_dma		= false,
-};
+//static struct i2c_jz4770_platform_data gcw0_i2c0_platform_data __initdata = {
+//	.use_dma		= false,
+//};
 
-static struct i2c_jz4770_platform_data gcw0_i2c1_platform_data __initdata = {
-	.use_dma		= false,
-};
+//static struct i2c_jz4770_platform_data gcw0_i2c1_platform_data __initdata = {
+//	.use_dma		= false,
+//};
 
-#if I2C0_USE_HW == 0
+//#if I2C0_USE_HW == 0
 
 static struct i2c_gpio_platform_data gcw0_i2c0_gpio_data = {
 	.sda_pin		= JZ_GPIO_PORTD(30),
@@ -610,9 +610,9 @@ static struct platform_device gcw0_i2c0_gpio_device = {
 	},
 };
 
-#endif
+//#endif
 
-#if I2C1_USE_HW == 0
+//#if I2C1_USE_HW == 0
 
 static struct i2c_gpio_platform_data gcw0_i2c1_gpio_data = {
 	.sda_pin		= JZ_GPIO_PORTE(30),
@@ -628,7 +628,7 @@ static struct platform_device gcw0_i2c1_gpio_device = {
 	},
 };
 
-#endif
+//#endif
 
 static struct i2c_gpio_platform_data gcw0_i2c3_gpio_data = {
 	.sda_pin		= JZ_GPIO_PORTD(5),
@@ -664,8 +664,8 @@ static struct platform_device gcw0_i2c4_gpio_device = {
 static struct platform_pwm_backlight_data gcw0_backlight_pdata = {
 	.polarity = PWM_POLARITY_NORMAL,
 	.max_brightness = 255,
-	.dft_brightness = 145,
-	.pwm_period_ns = 40000, /* 25 kHz: outside human hearing range */
+	.dft_brightness = 150,
+	.pwm_period_ns = 30000, /* 25 kHz: outside human hearing range */
 };
 
 static struct platform_device gcw0_backlight_device = {
@@ -743,7 +743,7 @@ static const char * gcw0_joystick_gpiokeys_whitelist[] = {
 
 static const struct linkdev_pdata_device_info gcw0_joystick_devices[] = {
 	{
-		.name = "analog joystick",
+		.name = "joystick",
 	},
 	{
 		.name = "gpio-keys",
@@ -827,60 +827,60 @@ static const struct linkdev_pdata_key_map gcw0_key_map[] = {
 		.code = KEY_PAGEDOWN,
 		.event.code = BTN_TR2,
 	},
-	{
-		.code = KEY_KPSLASH,
-		.event.code = BTN_THUMBL,
-	},
-	{
-		.code = KEY_KPDOT,
-		.event.code = BTN_THUMBR,
-	},
+//	{
+//		.code = KEY_KPSLASH,
+//		.event.code = BTN_THUMBL,
+//	},
+//	{
+//		.code = KEY_KPDOT,
+//		.event.code = BTN_THUMBR,
+//	},
 
 };
 
-static const struct linkdev_pdata_abs_map gcw0_abs_map[] = {
-	{
-		.name = "analog joystick",
-		.axis = ABS_X,
-		.axis_dest = ABS_X,
-	},
-	{
-		.name = "analog joystick",
-		.axis = ABS_Y,
-		.axis_dest = ABS_Y,
-	},
-	{
-		.name = "gpio-keys",
-		.axis = ABS_HAT0X,
-		.axis_dest = ABS_HAT0X,
-	},
-	{
-		.name = "gpio-keys",
-		.axis = ABS_HAT0Y,
-		.axis_dest = ABS_HAT0Y,
-	},
-	{
-		.name = "analog joystick",
-		.axis = ABS_RX,
-		.axis_dest = ABS_RX,
-	},
-	{
-		.name = "analog joystick",
-		.axis = ABS_RY,
-		.axis_dest = ABS_RY,
-	},
-
-};
+//static const struct linkdev_pdata_abs_map gcw0_abs_map[] = {
+//	{
+//		.name = "analog joystick",
+//		.axis = ABS_X,
+//		.axis_dest = ABS_X,
+//	},
+//	{
+//		.name = "analog joystick",
+//		.axis = ABS_Y,
+//		.axis_dest = ABS_Y,
+//	},
+//	{
+//		.name = "gpio-keys",
+//		.axis = ABS_HAT0X,
+//		.axis_dest = ABS_HAT0X,
+//	},
+//	{
+//		.name = "gpio-keys",
+//		.axis = ABS_HAT0Y,
+//		.axis_dest = ABS_HAT0Y,
+//	},
+//	{
+//		.name = "analog joystick",
+//		.axis = ABS_RX,
+//		.axis_dest = ABS_RX,
+//	},
+//	{
+//		.name = "analog joystick",
+//		.axis = ABS_RY,
+//		.axis_dest = ABS_RY,
+//	},
+//
+//};
 
 static struct linkdev_platform_data gcw0_joystick_pdata = {
 	/* This specific name informs SDL about the composition of the joystick */
-	.name = "linkdev device (Analog 2-axis 8-button 2-hat)",
+	.name = "linkdev device (8-button)",
 	.devices = gcw0_joystick_devices,
 	.nb_devices = ARRAY_SIZE(gcw0_joystick_devices),
 	.key_map = gcw0_key_map,
 	.key_map_size = ARRAY_SIZE(gcw0_key_map),
-	.abs_map = gcw0_abs_map,
-	.abs_map_size = ARRAY_SIZE(gcw0_abs_map),
+//	.abs_map = gcw0_abs_map,
+//	.abs_map_size = ARRAY_SIZE(gcw0_abs_map),
 };
 
 /* GCW0 Input driver */
@@ -918,18 +918,18 @@ static struct platform_device *jz_platform_devices[] __initdata = {
 	&jz4770_i2s_device,
 	&jz4770_pcm_device,
 	&jz4770_icdc_device,
-#if I2C0_USE_HW == 1
-	&jz4770_i2c0_device,
-#endif
-#if I2C1_USE_HW == 1
-	&jz4770_i2c1_device,
-#endif
-#if I2C0_USE_HW == 0
+//#if I2C0_USE_HW == 1
+//	&jz4770_i2c0_device,
+//#endif
+//#if I2C1_USE_HW == 1
+//	&jz4770_i2c1_device,
+//#endif
+//#if I2C0_USE_HW == 0
 	&gcw0_i2c0_gpio_device,
-#endif
-#if I2C1_USE_HW == 0
+//#endif
+//#if I2C1_USE_HW == 0
 	&gcw0_i2c1_gpio_device,
-#endif
+//#endif
 	&gcw0_i2c3_gpio_device,
 	&gcw0_i2c4_gpio_device,
 	&jz4770_pwm_device,
@@ -968,12 +968,12 @@ static int __init gcw0_init_platform_devices(void)
 
 static void __init board_i2c_init(void)
 {
-	jz4770_i2c0_device.dev.platform_data = &gcw0_i2c0_platform_data;
-	jz4770_i2c1_device.dev.platform_data = &gcw0_i2c1_platform_data;
+	//jz4770_i2c0_device.dev.platform_data = &gcw0_i2c0_platform_data;
+	//jz4770_i2c1_device.dev.platform_data = &gcw0_i2c1_platform_data;
 
 	i2c_register_board_info(0, gcw0_i2c0_devs, ARRAY_SIZE(gcw0_i2c0_devs));
-	//i2c_register_board_info(1, gcw0_i2c1_devs, ARRAY_SIZE(gcw0_i2c1_devs));
-	//i2c_register_board_info(3, gcw0_i2c3_devs, ARRAY_SIZE(gcw0_i2c3_devs));
+	i2c_register_board_info(1, gcw0_i2c1_devs, ARRAY_SIZE(gcw0_i2c1_devs));
+	i2c_register_board_info(3, gcw0_i2c3_devs, ARRAY_SIZE(gcw0_i2c3_devs));
 	i2c_register_board_info(4, gcw0_i2c4_devs, ARRAY_SIZE(gcw0_i2c4_devs));
 }
 
@@ -993,14 +993,14 @@ static void __init board_gpio_setup(void)
 }
 
 static struct pinctrl_map pin_map[] __initdata = {
-#if I2C0_USE_HW == 1
-	PIN_MAP_MUX_GROUP("i2c-jz4770.0", PINCTRL_STATE_DEFAULT,
-			  "jz4770-pinctrl", NULL, "i2c0"),
-#endif
-#if I2C1_USE_HW == 1
-	PIN_MAP_MUX_GROUP("i2c-jz4770.1", PINCTRL_STATE_DEFAULT,
-			  "jz4770-pinctrl", NULL, "i2c1"),
-#endif
+//#if I2C0_USE_HW == 1
+//	PIN_MAP_MUX_GROUP("i2c-jz4770.0", PINCTRL_STATE_DEFAULT,
+//			  "jz4770-pinctrl", NULL, "i2c0"),
+//#endif
+//#if I2C1_USE_HW == 1
+//	PIN_MAP_MUX_GROUP("i2c-jz4770.1", PINCTRL_STATE_DEFAULT,
+//			  "jz4770-pinctrl", NULL, "i2c1"),
+//#endif
 	PIN_MAP_MUX_GROUP("jz-msc.0", PINCTRL_STATE_DEFAULT,
 			  "jz4770-pinctrl", "msc0_4bit", "msc0"),
 	PIN_MAP_MUX_GROUP("jz-msc.1", PINCTRL_STATE_DEFAULT,

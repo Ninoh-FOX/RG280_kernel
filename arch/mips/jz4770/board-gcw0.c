@@ -110,7 +110,7 @@ static void gcw0_panel_disable(void *panel)
 static struct rg280_platform_data gcw0_panel_pdata = {
 	.gpio_reset		= JZ_GPIO_PORTE(2),
 	.gpio_clock		= JZ_GPIO_PORTE(15),
-	.gpio_enable		= JZ_GPIO_PORTE(16),
+	.gpio_enable	= JZ_GPIO_PORTE(16),
 	.gpio_data		= JZ_GPIO_PORTE(17),
 };
 
@@ -123,7 +123,7 @@ static struct panel_ops gcw0_panel_ops = {
 
 static struct jzfb_platform_data gcw0_fb_pdata = {
 	.panel_ops		= &gcw0_panel_ops,
-	.panel_pdata		= &gcw0_panel_pdata,
+	.panel_pdata	= &gcw0_panel_pdata,
 };
 
 
@@ -339,7 +339,7 @@ static struct jz_battery_platform_data gcw0_battery_pdata = {
 	.info = {
 		.name = "battery",
 		.technology = POWER_SUPPLY_TECHNOLOGY_LIPO,
-		.voltage_max_design = 4200000,
+		.voltage_max_design = 4100000,
 		.voltage_min_design = 3310000,
 	},
 };
@@ -764,7 +764,7 @@ static const struct linkdev_pdata_key_map gcw0_key_map[] = {
 
 static struct linkdev_platform_data gcw0_joystick_pdata = {
 	/* This specific name informs SDL about the composition of the joystick */
-	.name = "linkdev device (8-button)",
+	.name = "linkdev device (Analog 2-axis 8-button 2-hat)",
 	.devices = gcw0_joystick_devices,
 	.nb_devices = ARRAY_SIZE(gcw0_joystick_devices),
 	.key_map = gcw0_key_map,

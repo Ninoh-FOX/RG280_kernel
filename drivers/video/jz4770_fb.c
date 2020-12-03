@@ -39,8 +39,12 @@
 #include <linux/clk.h>
 #include <linux/interrupt.h>
 #include <linux/wait.h>
+
+///
 #include <linux/platform_data/jz4770_fb.h>
 #include <video/jzpanel.h>
+///
+
 #include <asm/addrspace.h>
 #include <asm/page.h>
 #include <asm/irq.h>
@@ -77,46 +81,19 @@ struct jz_panel {
 	unsigned int bfw;	/* begin of frame, in line count */
 };
 
-#if defined(CONFIG_PANEL_NT39016)
-static const struct jz_panel jz4770_lcd_panel = {
-	.cfg = LCD_CFG_LCDPIN_LCD | LCD_CFG_RECOVER |	/* Underrun recover */
-		LCD_CFG_MODE_GENERIC_TFT |	/* General TFT panel */
-		LCD_CFG_MODE_TFT_24BIT |	/* output 24bpp */
-		/*LCD_CFG_PCP |*/	/* Pixel clock polarity: falling edge */
-		LCD_CFG_HSP |	/* Hsync polarity: active low */
-		LCD_CFG_VSP,	/* Vsync polarity: leading edge is falling edge */
-	/* bw, bh, dw, dh, fclk, hsw, vsw, elw, blw, efw, bfw */
-//	320, 240, 320, 240, 60, 50, 1, 10, 70, 5, 5,
-	320, 240, 320, 240, 60, 16, 6, 20, 60, 2, 8,
-	/* Note: 432000000 / 72 = 60 * 400 * 250, so we get exactly 60 Hz. */
-};
-#elif defined(CONFIG_PANEL_NV3052C)
-static const struct jz_panel jz4770_lcd_panel = {
-	.cfg = LCD_CFG_LCDPIN_LCD | LCD_CFG_RECOVER |	/* Underrun recover */
-		LCD_CFG_MODE_GENERIC_TFT |	/* General TFT panel */
-		LCD_CFG_MODE_TFT_24BIT |	/* output 24bpp */
-		LCD_CFG_PCP |	/* Pixel clock polarity: falling edge */
-		LCD_CFG_HSP |	/* Hsync polarity: active low */
-		LCD_CFG_VSP,	/* Vsync polarity: leading edge is falling edge */
-	/* bw, bh, dw, dh, fclk, hsw, vsw, elw, blw, efw, bfw */
-	//320, 240, 320, 240, 60, 50, 1, 10, 70, 5, 5,
-	640, 480, 640, 480, 60, 96, 2, 16, 144, 15, 5,
-	/* Note: 432000000 / 72 = 60 * 400 * 250, so we get exactly 60 Hz. */
-};
-#elif defined(CONFIG_PANEL_RG280) //IPS_LKWY030C02_2_8
+//IPS_LKWY030C02_2_8
 static const struct jz_panel jz4770_lcd_panel = {
 	.cfg = LCD_CFG_LCDPIN_LCD | LCD_CFG_RECOVER | /* Underrun recover */ 
-		   //LCD_CFG_NEWDES | /* 8words descriptor */
+		   LCD_CFG_NEWDES | /* 8words descriptor */
 		   LCD_CFG_MODE_SERIAL_TFT | /* LCD_CFG_MODE_SERIAL_TFT */
 		   LCD_CFG_MODE_TFT_16BIT |	/* output 16bpp */
 		   LCD_CFG_PCP |	/* Pixel clock polarity: falling edge */
 		   LCD_CFG_HSP|
 		   LCD_CFG_VSP,
 	/* bw, bh, dw, dh, fclk, hsw, vsw, elw, blw, efw, bfw */
-	320, 240, 320, 240, 240, 28, 1, 25, 128, 16,36,
+	320, 240, 320, 240, 240, 28, 1, 25, 128, 16, 36,
 	/* Note: 432000000 / 72 = 60 * 400 * 250, so we get exactly 60 Hz. */
 };
-#endif
 
 struct jzfb {
 	struct fb_info *fb;
@@ -400,7 +377,7 @@ static int jzfb_check_var(struct fb_var_screeninfo *var, struct fb_info *fb)
 		if (var->xres > panel->dw)
 			var->xres = panel->dw;
 		if (var->yres > panel->dh)
-			var->yres = panel->dh*2;
+			var->yres = panel->dh;
 	}
 
 	/* Adjust the input size until we find a valid configuration */
@@ -806,12 +783,16 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		if (keep_aspect_ratio) {
 			unsigned int ratioW = (UINT_MAX >> 6) * numW / denomW,
 				     ratioH = (UINT_MAX >> 6) * numH / denomH;
-			if (ratioW < ratioH) {
-				numH = numW;
-				denomH = denomW;
-			} else {
+			if (ratioH > ratioW) {
+				unsigned int numH = panel->dh, denomH = fb->var.yres;
+				BUG_ON(reduce_fraction(&numH, &denomH) < 0);
 				numW = numH;
 				denomW = denomH;
+			} else {
+				unsigned int numW = panel->dw, denomW = fb->var.xres;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				numH = numW;
+				denomH = denomW;
 			}
 		}
 

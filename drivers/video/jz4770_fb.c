@@ -377,7 +377,7 @@ static int jzfb_check_var(struct fb_var_screeninfo *var, struct fb_info *fb)
 		if (var->xres > panel->dw)
 			var->xres = panel->dw;
 		if (var->yres > panel->dh)
-			var->yres = panel->dh;
+			var->yres = panel->dh*2;
 	}
 
 	/* Adjust the input size until we find a valid configuration */
@@ -781,18 +781,15 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 			BUG_ON(reduce_fraction(&numH, &denomH) < 0);
 		}
 		if (keep_aspect_ratio) {
-			unsigned int ratioW = (UINT_MAX >> 6) * numW / denomW,
-				     ratioH = (UINT_MAX >> 6) * numH / denomH;
-			if (ratioH > ratioW) {
-				unsigned int numH = panel->dh, denomH = fb->var.yres;
-				BUG_ON(reduce_fraction(&numH, &denomH) < 0);
-				numW = numH;
-				denomW = denomH;
-			} else {
-				unsigned int numW = panel->dw, denomW = fb->var.xres;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+			unsigned int ratioW = (UINT_MAX >> 6) * numW / denomW, ratioH = (UINT_MAX >> 6) * numH / denomH;
+			if (ratioW < ratioH) {
+				unsigned int numW = panel->dw*2, denomW = fb->var.xres;
 				numH = numW;
 				denomH = denomW;
+			} else {
+				unsigned int numH = panel->dh, denomH = fb->var.yres;
+				numW = numH;
+				denomW = denomH;
 			}
 		}
 
@@ -818,7 +815,7 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		}
 
 		outputH = fb->var.yres * numH / denomH;
-		outputW = fb->var.xres_virtual * numW / denomW;
+		outputW = fb->var.xres * numW / denomW;
 #ifdef USE_VGA_HACK
 if (fb->var.xres == 368)
 {
@@ -1173,20 +1170,24 @@ static ssize_t keep_aspect_ratio_show(struct device *dev,
 	return snprintf(buf, PAGE_SIZE, "%c\n", keep_aspect_ratio ? 'Y' : 'N');
 }
 
-static ssize_t keep_aspect_ratio_store(struct device *dev,
-		struct device_attribute *attr, const char *buf, size_t count)
+static ssize_t keep_aspect_ratio_store(struct device *dev, struct device_attribute *attr, const char *buf, size_t count)
 {
-	bool new_val;
-
-	if (strtobool(buf, &new_val))
-		return -EINVAL;
-
-	if (keep_aspect_ratio != new_val) {
-		keep_aspect_ratio = new_val;
-		scaling_settings_change(dev);
-	}
-
-	return count;
+  struct jzfb *jzfb = dev_get_drvdata(dev);
+  bool new_value = false;
+ 
+  if(strtobool(buf, &new_value) < 0){
+    return -EINVAL;
+  }
+ 
+  keep_aspect_ratio = new_value;
+  if(jzfb->is_enabled && scaling_required(jzfb)){
+    ctrl_disable(jzfb);
+    jzfb_ipu_disable(jzfb);
+    jzfb_ipu_configure(jzfb);
+    jzfb_ipu_enable(jzfb);
+    jzfb_lcdc_enable(jzfb);
+  }
+  return count;
 }
 
 static ssize_t integer_scaling_show(struct device *dev,
@@ -1467,8 +1468,8 @@ err_remove_allow_downscaling_file:
 	device_remove_file(&pdev->dev, &dev_attr_allow_downscaling.attr);
 err_remove_keep_aspect_ratio_file:
 	device_remove_file(&pdev->dev, &dev_attr_keep_aspect_ratio);
-err_exit_panel:
-	jzfb->pdata->panel_ops->exit(jzfb->panel_old);
+//err_exit_panel:
+//	jzfb->pdata->panel_ops->exit(jzfb->panel_old);
 err_unprepare_lpclk:
 	clk_disable_unprepare(jzfb->lpclk);
 err_unprepare_ipuclk:

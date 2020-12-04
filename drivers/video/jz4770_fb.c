@@ -86,12 +86,11 @@ static const struct jz_panel jz4770_lcd_panel = {
 	.cfg = LCD_CFG_LCDPIN_LCD | LCD_CFG_RECOVER | /* Underrun recover */ 
 		   LCD_CFG_NEWDES | /* 8words descriptor */
 		   LCD_CFG_MODE_SERIAL_TFT | /* LCD_CFG_MODE_SERIAL_TFT */
-		   LCD_CFG_MODE_TFT_16BIT |	/* output 16bpp */
 		   LCD_CFG_PCP |	/* Pixel clock polarity: falling edge */
 		   LCD_CFG_HSP|
 		   LCD_CFG_VSP,
 	/* bw, bh, dw, dh, fclk, hsw, vsw, elw, blw, efw, bfw */
-	320, 240, 320, 240, 240, 28, 1, 25, 128, 16, 36,
+	320, 480, 320, 240, 240, 28, 1, 25, 128, 16, 36,
 	/* Note: 432000000 / 72 = 60 * 400 * 250, so we get exactly 60 Hz. */
 };
 
@@ -454,7 +453,7 @@ static int jzfb_check_var(struct fb_var_screeninfo *var, struct fb_info *fb)
 	jzfb->clear_fb = var->bits_per_pixel != fb->var.bits_per_pixel ||
 		var->xres != fb->var.xres || var->yres != fb->var.yres;
 	divider = (panel->bw + panel->elw + panel->blw)
-		* (panel->bh*2 + panel->efw + panel->bfw);
+		* (panel->bh + panel->efw + panel->bfw);
 	if (var->pixclock) {
 		framerate = var->pixclock / divider;
 		if (framerate > panel->fclk)
@@ -783,11 +782,11 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		if (keep_aspect_ratio) {
 			unsigned int ratioW = (UINT_MAX >> 6) * numW / denomW, ratioH = (UINT_MAX >> 6) * numH / denomH;
 			if (ratioW < ratioH) {
-				unsigned int numW = panel->dw*2, denomW = fb->var.xres;
-				numH = numW;
-				denomH = denomW;
+				if (denomH < numH) {
+					numH /= denomH;
+					denomH = 1;
+				}
 			} else {
-				unsigned int numH = panel->dh, denomH = fb->var.yres;
 				numW = numH;
 				denomW = denomH;
 			}
@@ -847,7 +846,7 @@ outputW -= 64;
 	writel(outputW * 4, jzfb->ipu_base + IPU_OUT_STRIDE);
 	/* Resize Foreground1 to the output size of the IPU */
 	xpos = (panel->bw - outputW) / 2;
-	ypos = (panel->bh*2 - outputH) / 2;
+	ypos = (panel->bh - outputH) / 2;
 	jzfb_foreground_resize(jzfb, xpos, ypos, outputW, outputH);
 
 	dev_dbg(&jzfb->pdev->dev, "Scaling %ux%u to %ux%u\n",
@@ -969,13 +968,13 @@ static void jzfb_set_panel_mode(struct jzfb *jzfb)
 
 	/* Set HT / VT / HDS / HDE / VDS / VDE / HPE / VPE */
 	writel((panel->blw + panel->bw + panel->elw) << LCD_VAT_HT_BIT |
-			(panel->bfw + panel->bh*2 + panel->efw) << LCD_VAT_VT_BIT,
+			(panel->bfw + panel->bh + panel->efw) << LCD_VAT_VT_BIT,
 		jzfb->base + LCD_VAT);
 	writel(panel->blw << LCD_DAH_HDS_BIT |
 			(panel->blw + panel->bw) << LCD_DAH_HDE_BIT,
 			jzfb->base + LCD_DAH);
 	writel(panel->bfw << LCD_DAV_VDS_BIT |
-			(panel->bfw + panel->bh*2) << LCD_DAV_VDE_BIT,
+			(panel->bfw + panel->bh) << LCD_DAV_VDE_BIT,
 				jzfb->base + LCD_DAV);
 	writel(panel->hsw << LCD_HSYNC_HPE_BIT, jzfb->base + LCD_HSYNC);
 	writel(panel->vsw << LCD_VSYNC_VPE_BIT, jzfb->base + LCD_VSYNC);

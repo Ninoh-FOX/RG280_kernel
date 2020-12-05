@@ -782,9 +782,110 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		if (keep_aspect_ratio) {
 			unsigned int ratioW = (UINT_MAX >> 6) * numW / denomW, ratioH = (UINT_MAX >> 6) * numH / denomH;
 			if (ratioW < ratioH) {
-				if (denomH < numH) {
-					numH /= denomH;
-					denomH = 1;
+				if ((fb->var.xres == 640) && (fb->var.yres == 480)) {
+				numH = numW * 2; /*1,3*/ /*4:3*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 640) && (fb->var.yres == 400)) {
+				numH = numW * 2; /*1,6*/ /*16:10*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 512) && (fb->var.yres == 384)) {
+				numH = numW * 2; /*1,3*/ /*4:3*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 512) && (fb->var.yres == 240)) {
+				numH = numW * 2; /*2.1*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 384) && (fb->var.yres == 224)) {
+				numH = numW * 2; /*1,7*/ /*16:9*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 368) && (fb->var.yres == 240)) {
+				numH = numW * 2; /*1,5*/ /*3:2*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 320) && (fb->var.yres == 240)) {
+				numH = numW * 2; /*1,3*/ /*4:3*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 320) && (fb->var.yres == 224)) {
+				numH = numW * 2; /*1,4*/ /*3:2*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 320) && (fb->var.yres == 200)) {
+				numH = numW * 2; /*1,6*/ /*16:10*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 320) && (fb->var.yres == 192)) {
+				numH = numW; /*1,6*/ /*16:10*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 304) && (fb->var.yres == 224)) {
+				numH = numW * 2; /*1,3*/ /*4:3*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 256) && (fb->var.yres == 240)) {
+				numW = numH / 2; /*1,06*/ /*10:9*/
+				denomW = denomH;
+				BUG_ON(reduce_fraction(&numH, &denomH) < 0);
+				}
+				else if ((fb->var.xres == 256) && (fb->var.yres == 224)) {
+				numW = numH / 2; /*1,1*/ /*10:9*/
+				denomW = denomH;
+				BUG_ON(reduce_fraction(&numH, &denomH) < 0);
+				}
+				else if ((fb->var.xres == 256) && (fb->var.yres == 192)) {
+				numH = numW * 2; /*1,3*/ /*4:3*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 240) && (fb->var.yres == 160)) {
+				numH = numW * 2; /*1,5*/ /*3:2*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 224) && (fb->var.yres == 176)) {
+				numH = numH; /*1,27*/ /*4:3*/
+				denomH = denomH;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 224) && (fb->var.yres == 144)) {
+				numH = numW; /*1,5*/ /*3:2*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 208) && (fb->var.yres == 160)) {
+				numH = numH; /*1,3*/ /*4:3*/
+				denomH = denomH;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 192) && (fb->var.yres == 144)) {
+				numH = numW * 2; /*1,3*/ /*4:3*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+				}
+				else if ((fb->var.xres == 160) && (fb->var.yres == 144)) {
+				numW = numH / 2; /*1,1*/ /*10:9*/
+				denomW = denomH;
+				BUG_ON(reduce_fraction(&numH, &denomH) < 0);
+				}
+				else if ((fb->var.xres == 160) && (fb->var.yres == 120)) {
+				numH = numW * 2; /*1,3*/ /*4:3*/
+				denomH = denomW;
+				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
 				}
 			} else {
 				numW = numH;

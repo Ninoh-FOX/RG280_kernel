@@ -90,7 +90,7 @@ static const struct jz_panel jz4770_lcd_panel = {
 		   LCD_CFG_HSP|
 		   LCD_CFG_VSP,
 	/* bw, bh, dw, dh, fclk, hsw, vsw, elw, blw, efw, bfw */
-	320, 480, 320, 240, 240, 28, 1, 25, 128, 16, 36,
+	320, 480, 320, 240, 60, 28, 1, 30, 210, 84 ,36
 	/* Note: 432000000 / 72 = 60 * 400 * 250, so we get exactly 60 Hz. */
 };
 
@@ -125,7 +125,7 @@ struct jzfb {
 };
 
 static void *lcd_frame1;
-static bool keep_aspect_ratio = false;
+static bool keep_aspect_ratio = true;
 static bool allow_downscaling = false;
 static bool integer_scaling = false;
 
@@ -204,6 +204,97 @@ void spi_send_value(unsigned short reg, unsigned short val)
 	udelay(50);
 }
 
+#define REG00_VBRT_CTRL(val)		(val)
+
+#define REG01_COM_DC(val)		(val)
+
+#define REG02_DA_CONTRAST(val)		(val)
+#define REG02_VESA_SEL(val)		((val) << 5)
+#define REG02_COMDC_SW			BIT(7)
+
+#define REG03_VPOSITION(val)		(val)
+#define REG03_BSMOUNT			BIT(5)
+#define REG03_COMTST			BIT(6)
+#define REG03_HPOSITION1		BIT(7)
+
+#define REG04_HPOSITION1(val)		(val)
+
+#define REG05_CLIP			BIT(0)
+#define REG05_NVM_VREFRESH		BIT(1)
+#define REG05_SLFR			BIT(2)
+#define REG05_SLBRCHARGE(val)		((val) << 3)
+#define REG05_PRECHARGE_LEVEL(val)	((val) << 6)
+
+#define REG06_TEST5			BIT(0)
+#define REG06_SLDWN			BIT(1)
+#define REG06_SLRGT			BIT(2)
+#define REG06_TEST2			BIT(3)
+#define REG06_XPSAVE			BIT(4)
+#define REG06_GAMMA_SEL(val)		((val) << 5)
+#define REG06_NT			BIT(7)
+
+#define REG07_TEST1			BIT(0)
+#define REG07_HDVD_POL			BIT(1)
+#define REG07_CK_POL			BIT(2)
+#define REG07_TEST3			BIT(3)
+#define REG07_TEST4			BIT(4)
+#define REG07_480_LINEMASK		BIT(5)
+#define REG07_AMPTST(val)		((val) << 6)
+
+#define REG08_SLHRC(val)		(val)
+#define REG08_CLOCK_DIV(val)		((val) << 2)
+#define REG08_PANEL(val)		((val) << 5)
+
+#define REG09_SUB_BRIGHT_R(val)		(val)
+#define REG09_NW_NB			BIT(6)
+#define REG09_IPCON			BIT(7)
+
+#define REG0A_SUB_BRIGHT_B(val)		(val)
+#define REG0A_PAIR			BIT(6)
+#define REG0A_DE_SEL			BIT(7)
+
+#define REG0B_MBK_POSITION(val)		(val)
+#define REG0B_HD_FREERUN		BIT(4)
+#define REG0B_VD_FREERUN		BIT(5)
+#define REG0B_YUV2BIN(val)		((val) << 6)
+
+#define REG0C_CONTRAST_R(val)		(val)
+#define REG0C_DOUBLEREAD		BIT(7)
+
+#define REG0D_CONTRAST_G(val)		(val)
+#define REG0D_RGB_YUV			BIT(7)
+
+#define REG0E_CONTRAST_B(val)		(val)
+#define REG0E_PIXELCOLORDRIVE		BIT(7)
+
+#define REG0F_ASPECT			BIT(0)
+#define REG0F_OVERSCAN(val)		((val) << 1)
+#define REG0F_FRAMEWIDTH(val)		((val) << 3)
+
+#define REG10_BRIGHT(val)		(val)
+
+#define REG11_SIG_GAIN(val)		(val)
+#define REG11_SIGC_CNTL			BIT(6)
+#define REG11_SIGC_POL			BIT(7)
+
+#define REG12_COLOR(val)		(val)
+#define REG12_PWCKSEL(val)		((val) << 6)
+
+#define REG13_4096LEVEL_CNTL(val)	(val)
+#define REG13_SL4096(val)		((val) << 4)
+#define REG13_LIMITER_CONTROL		BIT(7)
+
+#define REG14_PANEL_TEST(val)		(val)
+
+#define REG15_NVM_LINK0			BIT(0)
+#define REG15_NVM_LINK1			BIT(1)
+#define REG15_NVM_LINK2			BIT(2)
+#define REG15_NVM_LINK3			BIT(3)
+#define REG15_NVM_LINK4			BIT(4)
+#define REG15_NVM_LINK5			BIT(5)
+#define REG15_NVM_LINK6			BIT(6)
+#define REG15_NVM_LINK7			BIT(7)
+
 #define spi_send_cmd(cmd)     spi_send_value(0,cmd)
 #define spi_send_data(data)   spi_send_value(1,data)
 void lcd_special_pin_init(void)
@@ -220,18 +311,28 @@ void lcd_special_pin_init(void)
 
 void IPS_LKWY030C02_2_8_init(void)
 {
-	spi_writ_bit16(0x02,0x7f);
-	spi_writ_bit16(0x03,0x0A);
-	spi_writ_bit16(0x04,0x80);
-	spi_writ_bit16(0x06,0x90);
-	spi_writ_bit16(0x08,0x28);
-	spi_writ_bit16(0x09,0x20);
-	spi_writ_bit16(0x0a,0x20);
-	spi_writ_bit16(0x0c,0x40);
-	spi_writ_bit16(0x0d,0x40);
-	spi_writ_bit16(0x0e,0x40);
-	spi_writ_bit16(0x10,0x80);
-	spi_writ_bit16(0x11,0x3F);
+	spi_writ_bit16( 0x00, REG00_VBRT_CTRL(0x7f) );
+	spi_writ_bit16( 0x01, REG01_COM_DC(0x3c) );
+	spi_writ_bit16( 0x02, REG02_VESA_SEL(0x3) | REG02_DA_CONTRAST(0x1f) );
+	spi_writ_bit16( 0x03, REG03_VPOSITION(0x0a) );
+	spi_writ_bit16( 0x04, REG04_HPOSITION1(0xd2) );
+	spi_writ_bit16( 0x05, REG05_CLIP | REG05_NVM_VREFRESH | REG05_SLBRCHARGE(0x2) );
+	spi_writ_bit16( 0x06, REG06_XPSAVE | REG06_NT );
+	spi_writ_bit16( 0x07, 0 );
+	spi_writ_bit16( 0x08, REG08_PANEL(0x1) | REG08_CLOCK_DIV(0x2) );
+	spi_writ_bit16( 0x09, REG09_SUB_BRIGHT_R(0x20) );
+	spi_writ_bit16( 0x0a, REG0A_SUB_BRIGHT_B(0x20) );
+	spi_writ_bit16( 0x0b, REG0B_HD_FREERUN | REG0B_VD_FREERUN );
+	spi_writ_bit16( 0x0c, REG0C_CONTRAST_R(0x10) );
+	spi_writ_bit16( 0x0d, REG0D_CONTRAST_G(0x10) );
+	spi_writ_bit16( 0x0e, REG0E_CONTRAST_B(0x10) );
+	spi_writ_bit16( 0x0f, 0 );
+	spi_writ_bit16( 0x10, REG10_BRIGHT(0x7f) );
+	spi_writ_bit16( 0x11, REG11_SIGC_CNTL | REG11_SIG_GAIN(0x3f) );
+	spi_writ_bit16( 0x12, REG12_COLOR(0x20) | REG12_PWCKSEL(0x1) );
+	spi_writ_bit16( 0x13, REG13_4096LEVEL_CNTL(0x8) );
+	spi_writ_bit16( 0x14, 0 );
+	spi_writ_bit16( 0x15, 0 );
 }
 void lcd_enter_sleep(void)
 {
@@ -386,7 +487,7 @@ static int jzfb_check_var(struct fb_var_screeninfo *var, struct fb_info *fb)
 	if (var->xres > MAX_XRES)
 		return -EINVAL;
 
-	for (num = panel->dh, denom = var->yres; var->yres <= MAX_YRES &&
+	for (num = panel->dh*2, denom = var->yres; var->yres <= MAX_YRES &&
 			reduce_fraction(&num, &denom) < 0;
 			denom++, var->yres++);
 	if (var->yres > MAX_YRES)
@@ -452,7 +553,7 @@ static int jzfb_check_var(struct fb_var_screeninfo *var, struct fb_info *fb)
 
 	jzfb->clear_fb = var->bits_per_pixel != fb->var.bits_per_pixel ||
 		var->xres != fb->var.xres || var->yres != fb->var.yres;
-	divider = (panel->bw + panel->elw + panel->blw)
+	divider = (panel->bw * 3 + panel->elw + panel->blw)
 		* (panel->bh + panel->efw + panel->bfw);
 	if (var->pixclock) {
 		framerate = var->pixclock / divider;
@@ -781,111 +882,103 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		}
 		if (keep_aspect_ratio) {
 			unsigned int ratioW = (UINT_MAX >> 6) * numW / denomW, ratioH = (UINT_MAX >> 6) * numH / denomH;
+				
 			if (ratioW < ratioH) {
 				if ((fb->var.xres == 640) && (fb->var.yres == 480)) {
-				numH = numW * 2; /*1,3*/ /*4:3*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,3*/ /*4:3*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 640) && (fb->var.yres == 400)) {
-				numH = numW * 2; /*1,6*/ /*16:10*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,6*/ /*16:10*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 512) && (fb->var.yres == 384)) {
-				numH = numW * 2; /*1,3*/ /*4:3*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,3*/ /*4:3*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 512) && (fb->var.yres == 240)) {
-				numH = numW * 2; /*2.1*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*2.1*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 384) && (fb->var.yres == 224)) {
-				numH = numW * 2; /*1,7*/ /*16:9*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,7*/ /*16:9*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 368) && (fb->var.yres == 240)) {
-				numH = numW * 2; /*1,5*/ /*3:2*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,5*/ /*3:2*/
+					denomH = denomW;
+				}
+				else if ((fb->var.xres == 320) && (fb->var.yres == 480)) {
+					numH = numW * 2; /*0,7*/ /*2:3*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 320) && (fb->var.yres == 240)) {
-				numH = numW * 2; /*1,3*/ /*4:3*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,3*/ /*4:3*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 320) && (fb->var.yres == 224)) {
-				numH = numW * 2; /*1,4*/ /*3:2*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,4*/ /*3:2*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 320) && (fb->var.yres == 200)) {
-				numH = numW * 2; /*1,6*/ /*16:10*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,6*/ /*16:10*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 320) && (fb->var.yres == 192)) {
-				numH = numW; /*1,6*/ /*16:10*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW; /*1,6*/ /*16:10*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 304) && (fb->var.yres == 224)) {
-				numH = numW * 2; /*1,3*/ /*4:3*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,3*/ /*4:3*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 256) && (fb->var.yres == 240)) {
-				numW = numH / 2; /*1,06*/ /*10:9*/
-				denomW = denomH;
-				BUG_ON(reduce_fraction(&numH, &denomH) < 0);
+					numW = numH / 2; /*1,06*/ /*10:9*/
+					denomW = denomH;
 				}
 				else if ((fb->var.xres == 256) && (fb->var.yres == 224)) {
-				numW = numH / 2; /*1,1*/ /*10:9*/
-				denomW = denomH;
-				BUG_ON(reduce_fraction(&numH, &denomH) < 0);
+					numW = numH / 2; /*1,1*/ /*10:9*/
+					denomW = denomH;
 				}
 				else if ((fb->var.xres == 256) && (fb->var.yres == 192)) {
-				numH = numW * 2; /*1,3*/ /*4:3*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,3*/ /*4:3*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 240) && (fb->var.yres == 160)) {
-				numH = numW * 2; /*1,5*/ /*3:2*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,5*/ /*3:2*/
+					denomH = denomW;
+				}
+				else if ((fb->var.xres == 240) && (fb->var.yres == 140)) {
+					numH = numW * 2; /*1,7*/ /*16:9*/ /*TIC8*/
+					denomH = denomW;
+				}
+				else if ((fb->var.xres == 240) && (fb->var.yres == 136)) {
+					numH = numW * 2; /*1,7*/ /*16:9*/ /*TIC8*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 224) && (fb->var.yres == 176)) {
-				numH = numH; /*1,27*/ /*4:3*/
-				denomH = denomH;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numH; /*1,27*/ /*4:3*/
+					denomH = denomH;
 				}
 				else if ((fb->var.xres == 224) && (fb->var.yres == 144)) {
-				numH = numW * 2; /*1,5*/ /*3:2*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,5*/ /*3:2*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 208) && (fb->var.yres == 160)) {
-				numH = numH; /*1,3*/ /*4:3*/
-				denomH = denomH;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numH; /*1,3*/ /*4:3*/
+					denomH = denomH;
 				}
 				else if ((fb->var.xres == 192) && (fb->var.yres == 144)) {
-				numH = numW * 2; /*1,3*/ /*4:3*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,3*/ /*4:3*/
+					denomH = denomW;
 				}
 				else if ((fb->var.xres == 160) && (fb->var.yres == 144)) {
-				numW = numH / 2; /*1,1*/ /*10:9*/
-				denomW = denomH;
-				BUG_ON(reduce_fraction(&numH, &denomH) < 0);
+					numW = numH / 2; /*1,1*/ /*10:9*/
+					denomW = denomH;
 				}
 				else if ((fb->var.xres == 160) && (fb->var.yres == 120)) {
-				numH = numW * 2; /*1,3*/ /*4:3*/
-				denomH = denomW;
-				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
+					numH = numW * 2; /*1,3*/ /*4:3*/
+					denomH = denomW;
 				}
 			} else {
 				numW = numH;
@@ -901,6 +994,12 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		writel(IPU_CTRL_CHIP_EN | IPU_CTRL_ZOOM_SEL,
 			jzfb->ipu_base + IPU_CTRL);
 		ctrl |= IPU_CTRL_ZOOM_SEL;
+		
+		if (numW > denomW)
+			ctrl |= IPU_CTRL_HSCALE;
+
+		if (numH > denomH)
+			ctrl |= IPU_CTRL_VSCALE;
 
 		if (numW != 1 || denomW != 1) {
 			set_coefs(jzfb, IPU_HRSZ_COEF_LUT, numW, denomW);

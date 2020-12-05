@@ -125,7 +125,7 @@ struct jzfb {
 };
 
 static void *lcd_frame1;
-static bool keep_aspect_ratio = true;
+static bool keep_aspect_ratio = false;
 static bool allow_downscaling = false;
 static bool integer_scaling = false;
 

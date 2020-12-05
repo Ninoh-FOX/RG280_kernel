@@ -980,6 +980,10 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 					numH = numW * 2; /*1,3*/ /*4:3*/
 					denomH = denomW;
 				}
+				else if ((fb->var.xres == 160) && (fb->var.yres == 112)) {
+					numH = numW * 2; /*1,4*/ /*3:2*/
+					denomH = denomW;
+				}
 			} else {
 				numW = numH;
 				denomW = denomH;

@@ -863,7 +863,7 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
 				}
 				else if ((fb->var.xres == 224) && (fb->var.yres == 144)) {
-				numH = numW; /*1,5*/ /*3:2*/
+				numH = numW * 2; /*1,5*/ /*3:2*/
 				denomH = denomW;
 				BUG_ON(reduce_fraction(&numW, &denomW) < 0);
 				}

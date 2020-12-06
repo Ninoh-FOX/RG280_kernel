@@ -1,4 +1,4 @@
-/*
+ /*
  * jz4770_fb.c -- Ingenic Jz4770 LCD frame buffer device
  *
  * Copyright (C) 2012, Maarten ter Huurne <maarten@treewalker.org>
@@ -888,9 +888,21 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 					numH = numW * 2; /*1,3*/ /*4:3*/
 					denomH = denomW;
 				}
+				else if ((fb->var.xres == 640) && (fb->var.yres == 448)) {
+					numH = numW * 2; /*1,42*/ /*3:2*/
+					denomH = denomW;
+				}
 				else if ((fb->var.xres == 640) && (fb->var.yres == 400)) {
 					numH = numW * 2; /*1,6*/ /*16:10*/
 					denomH = denomW;
+				}
+				else if ((fb->var.xres == 640) && (fb->var.yres == 256)) {
+					numH = numW * 2; /*2,5*/ /*16:9*/
+					denomH = denomW;
+				}
+				else if ((fb->var.xres == 512) && (fb->var.yres == 448)) {
+					numH = numH; /*1,1*/ /*10:9*/
+					denomH = denomH;
 				}
 				else if ((fb->var.xres == 512) && (fb->var.yres == 384)) {
 					numH = numW * 2; /*1,3*/ /*4:3*/
@@ -900,13 +912,33 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 					numH = numW * 2; /*2.1*/
 					denomH = denomW;
 				}
+				else if ((fb->var.xres == 512) && (fb->var.yres == 224)) {
+					numH = numW * 2; /*2.2*/ 
+					denomH = denomW;
+				}
+				else if ((fb->var.xres == 448) && (fb->var.yres == 224)) {
+					numH = numW * 2; /*2*/
+					denomH = denomW;
+				}
 				else if ((fb->var.xres == 384) && (fb->var.yres == 224)) {
 					numH = numW * 2; /*1,7*/ /*16:9*/
+					denomH = denomW;
+				}
+				else if ((fb->var.xres == 368) && (fb->var.yres == 256)) {
+					numH = numW * 2; /*1,43*/ /*3:2*/
 					denomH = denomW;
 				}
 				else if ((fb->var.xres == 368) && (fb->var.yres == 240)) {
 					numH = numW * 2; /*1,5*/ /*3:2*/
 					denomH = denomW;
+				}
+				else if ((fb->var.xres == 368) && (fb->var.yres == 224)) {
+					numH = numW * 2; /*1,64*/ /*3:2*/
+					denomH = denomW;
+				}
+				else if ((fb->var.xres == 320) && (fb->var.yres == 256)) {
+					numW = numH / 2; /*1,25*/ /*5:4*/
+					denomW = denomH;
 				}
 				else if ((fb->var.xres == 320) && (fb->var.yres == 480)) {
 					numH = numW * 2; /*0,7*/ /*2:3*/
@@ -930,6 +962,18 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 				}
 				else if ((fb->var.xres == 304) && (fb->var.yres == 224)) {
 					numH = numW * 2; /*1,3*/ /*4:3*/
+					denomH = denomW;
+				}
+				else if ((fb->var.xres == 288) && (fb->var.yres == 224)) {
+					numW = numH / 2; /*1,01*/ /*10:9*/
+					denomW = denomH;
+				}
+				else if ((fb->var.xres == 272) && (fb->var.yres == 236)) {
+					numH = numW * 2; /*1,1 */
+					denomH = denomW;
+				}
+				else if ((fb->var.xres == 272) && (fb->var.yres == 224)) {
+					numH = numW; /*1,2 */
 					denomH = denomW;
 				}
 				else if ((fb->var.xres == 256) && (fb->var.yres == 240)) {
@@ -967,6 +1011,10 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 				else if ((fb->var.xres == 208) && (fb->var.yres == 160)) {
 					numH = numH; /*1,3*/ /*4:3*/
 					denomH = denomH;
+				}
+				else if ((fb->var.xres == 160) && (fb->var.yres == 160)) {
+					numW = numH * 2/3; /*1*/ /*1:1*/ /*NGP*/
+					denomW = denomH;
 				}
 				else if ((fb->var.xres == 192) && (fb->var.yres == 144)) {
 					numH = numW * 2; /*1,3*/ /*4:3*/

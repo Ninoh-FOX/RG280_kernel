@@ -125,8 +125,8 @@ struct jzfb {
 };
 
 static void *lcd_frame1;
-static bool keep_aspect_ratio = false;
-static bool allow_downscaling = false;
+static bool keep_aspect_ratio = true;
+static bool allow_downscaling = true;
 static bool integer_scaling = false;
 
 
@@ -481,7 +481,7 @@ static int jzfb_check_var(struct fb_var_screeninfo *var, struct fb_info *fb)
 	}
 
 	/* Adjust the input size until we find a valid configuration */
-	for (num = panel->dw, denom = var->xres; var->xres <= MAX_XRES &&
+	for (num = panel->dw*2, denom = var->xres; var->xres <= MAX_XRES &&
 			reduce_fraction(&num, &denom) < 0;
 			denom++, var->xres++);
 	if (var->xres > MAX_XRES)
@@ -823,6 +823,8 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 	unsigned int outputW = panel->dw,
 		     outputH = panel->dh*2,
 		     xpos = 0, ypos = 0;
+	
+	bool upscaling_w, upscaling_h;
 	/* Enable the chip, reset all the registers */
 	writel(IPU_CTRL_CHIP_EN | IPU_CTRL_RST, jzfb->ipu_base + IPU_CTRL);
 
@@ -869,169 +871,42 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		ctrl |= IPU_CTRL_SPKG_SEL;
 
 	if (scaling_required(jzfb)) {
-		unsigned int numW = panel->dw, denomW = fb->var.xres,
-			     numH = panel->dh*2, denomH = fb->var.yres;
+		unsigned int numW = panel->dw, denomW = fb->var.xres, numH = panel->dh*2, denomH = fb->var.yres;
+		unsigned int numW2 = panel->dw*2, denomW2 = fb->var.xres, numH2 = panel->dh, denomH2 = fb->var.yres;
+		
 
 		if (integer_scaling && (denomW <= numW) && (denomH <= numH)) {
 			numW /= denomW;
 			numH /= denomH;
 			denomW = denomH = 1;
+		} else if (integer_scaling && (denomW2 <= numW2) && (denomH2 <= numH2)) {
+			numW2 /= denomW2;
+			numH2 /= denomH2;
+			denomW2 = denomH2 = 1;
 		} else {
 			BUG_ON(reduce_fraction(&numW, &denomW) < 0);
 			BUG_ON(reduce_fraction(&numH, &denomH) < 0);
+			BUG_ON(reduce_fraction(&numH2, &denomH2) < 0);
+			BUG_ON(reduce_fraction(&numW2, &denomW2) < 0);
 		}
 		if (keep_aspect_ratio) {
-			unsigned int ratioW = (UINT_MAX >> 6) * numW / denomW, ratioH = (UINT_MAX >> 6) * numH / denomH;
+			unsigned int ratioW = (UINT_MAX >> 6) * numW / denomW, ratioW2 = (UINT_MAX >> 6) * numW2 / denomW2, ratioH = (UINT_MAX >> 6) * numH / denomH, ratioH2 = (UINT_MAX >> 6) * numH2 / denomH2;
 				
-			if (ratioW < ratioH) {
-				if ((fb->var.xres == 640) && (fb->var.yres == 480)) {
-					numH = numW * 2; /*1,3*/ /*4:3*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 640) && (fb->var.yres == 448)) {
-					numH = numW * 2; /*1,42*/ /*3:2*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 640) && (fb->var.yres == 400)) {
-					numH = numW * 2; /*1,6*/ /*16:10*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 640) && (fb->var.yres == 256)) {
-					numH = numW * 2; /*2,5*/ /*16:9*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 512) && (fb->var.yres == 448)) {
-					numH = numH; /*1,1*/ /*10:9*/
-					denomH = denomH;
-				}
-				else if ((fb->var.xres == 512) && (fb->var.yres == 384)) {
-					numH = numW * 2; /*1,3*/ /*4:3*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 512) && (fb->var.yres == 240)) {
-					numH = numW * 2; /*2.1*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 512) && (fb->var.yres == 224)) {
-					numH = numW * 2; /*2.2*/ 
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 448) && (fb->var.yres == 224)) {
-					numH = numW * 2; /*2*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 384) && (fb->var.yres == 224)) {
-					numH = numW * 2; /*1,7*/ /*16:9*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 368) && (fb->var.yres == 256)) {
-					numH = numW * 2; /*1,43*/ /*3:2*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 368) && (fb->var.yres == 240)) {
-					numH = numW * 2; /*1,5*/ /*3:2*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 368) && (fb->var.yres == 224)) {
-					numH = numW * 2; /*1,64*/ /*3:2*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 320) && (fb->var.yres == 256)) {
-					numW = numH / 2; /*1,25*/ /*5:4*/
-					denomW = denomH;
-				}
-				else if ((fb->var.xres == 320) && (fb->var.yres == 480)) {
-					numH = numW * 2; /*0,7*/ /*2:3*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 320) && (fb->var.yres == 240)) {
-					numH = numW * 2; /*1,3*/ /*4:3*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 320) && (fb->var.yres == 224)) {
-					numH = numW * 2; /*1,4*/ /*3:2*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 320) && (fb->var.yres == 200)) {
-					numH = numW * 2; /*1,6*/ /*16:10*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 320) && (fb->var.yres == 192)) {
-					numH = numW; /*1,6*/ /*16:10*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 304) && (fb->var.yres == 224)) {
-					numH = numW * 2; /*1,3*/ /*4:3*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 288) && (fb->var.yres == 224)) {
-					numW = numH / 2; /*1,01*/ /*10:9*/
-					denomW = denomH;
-				}
-				else if ((fb->var.xres == 272) && (fb->var.yres == 236)) {
-					numH = numW * 2; /*1,1 */
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 272) && (fb->var.yres == 224)) {
-					numH = numW; /*1,2 */
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 256) && (fb->var.yres == 240)) {
-					numW = numH / 2; /*1,06*/ /*10:9*/
-					denomW = denomH;
-				}
-				else if ((fb->var.xres == 256) && (fb->var.yres == 224)) {
-					numW = numH / 2; /*1,1*/ /*10:9*/
-					denomW = denomH;
-				}
-				else if ((fb->var.xres == 256) && (fb->var.yres == 192)) {
-					numH = numW * 2; /*1,3*/ /*4:3*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 240) && (fb->var.yres == 160)) {
-					numH = numW * 2; /*1,5*/ /*3:2*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 240) && (fb->var.yres == 140)) {
-					numH = numW * 2; /*1,7*/ /*16:9*/ /*TIC8*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 240) && (fb->var.yres == 136)) {
-					numH = numW * 2; /*1,7*/ /*16:9*/ /*TIC8*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 224) && (fb->var.yres == 176)) {
-					numH = numH; /*1,27*/ /*4:3*/
-					denomH = denomH;
-				}
-				else if ((fb->var.xres == 224) && (fb->var.yres == 144)) {
-					numH = numW * 2; /*1,5*/ /*3:2*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 208) && (fb->var.yres == 160)) {
-					numH = numH; /*1,3*/ /*4:3*/
-					denomH = denomH;
-				}
-				else if ((fb->var.xres == 160) && (fb->var.yres == 160)) {
-					numW = numH * 2/3; /*1*/ /*1:1*/ /*NGP*/
-					denomW = denomH;
-				}
-				else if ((fb->var.xres == 192) && (fb->var.yres == 144)) {
-					numH = numW * 2; /*1,3*/ /*4:3*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 160) && (fb->var.yres == 144)) {
-					numW = numH / 2; /*1,1*/ /*10:9*/
-					denomW = denomH;
-				}
-				else if ((fb->var.xres == 160) && (fb->var.yres == 120)) {
-					numH = numW * 2; /*1,3*/ /*4:3*/
-					denomH = denomW;
-				}
-				else if ((fb->var.xres == 160) && (fb->var.yres == 112)) {
-					numH = numW * 2; /*1,4*/ /*3:2*/
-					denomH = denomW;
-				}
+			if (ratioW2 < ratioH2) {
+				numH = numW2;
+				denomH = denomW2;
+			} else if (ratioW < ratioH2) {
+				numH = numW2;
+				denomH = denomW2;
+			} else if (ratioH2 < ratioW2) {
+				numW = numH2;
+				denomW = denomH2;
+			} else if (ratioH < ratioW2) {
+				numW = numH;
+				denomW = denomH;
+			} else if (ratioW < ratioH) {
+				numH = numW;
+				denomH = denomW;
 			} else {
 				numW = numH;
 				denomW = denomH;
@@ -1047,22 +922,54 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 			jzfb->ipu_base + IPU_CTRL);
 		ctrl |= IPU_CTRL_ZOOM_SEL;
 		
-		if (numW > denomW)
+		upscaling_w = 1;
+		if (upscaling_w)
 			ctrl |= IPU_CTRL_HSCALE;
 
-		if (numH > denomH)
+		upscaling_h = 1;
+		if (upscaling_h)
 			ctrl |= IPU_CTRL_VSCALE;
 
 		if (numW != 1 || denomW != 1) {
 			set_coefs(jzfb, IPU_HRSZ_COEF_LUT, numW, denomW);
-			coef_index |= ((numW - 1) << 16);
-			ctrl |= IPU_CTRL_HRSZ_EN;
+
+		if (!upscaling_w)
+			coef_index |= (denomW - 1) << 16;
+		else
+			coef_index |= (numW - 1) << 16;
+
+		ctrl |= IPU_CTRL_HRSZ_EN;
+		}
+		
+		if (numW2 != 1 || denomW2 != 1) {
+			set_coefs(jzfb, IPU_HRSZ_COEF_LUT, numW, denomW);
+
+		if (!upscaling_w)
+			coef_index |= (denomW - 1) << 16;
+		else
+			coef_index |= (numW - 1) << 16;
+
+		ctrl |= IPU_CTRL_HRSZ_EN;
 		}
 
 		if (numH != 1 || denomH != 1) {
 			set_coefs(jzfb, IPU_VRSZ_COEF_LUT, numH, denomH);
-			coef_index |= numH - 1;
-			ctrl |= IPU_CTRL_VRSZ_EN;
+		if (!upscaling_h)
+			coef_index |= (denomH - 1);
+		else
+			coef_index |= (numH - 1);
+
+		ctrl |= IPU_CTRL_VRSZ_EN;
+		}
+		
+		if (numH2 != 1 || denomH2 != 1) {
+			set_coefs(jzfb, IPU_VRSZ_COEF_LUT, numH, denomH);
+		if (!upscaling_h)
+			coef_index |= (denomH - 1);
+		else
+			coef_index |= (numH - 1);
+
+		ctrl |= IPU_CTRL_VRSZ_EN;
 		}
 
 		outputH = fb->var.yres * numH / denomH;
@@ -1082,8 +989,13 @@ outputW -= 64;
 		 * ones that correspond to the next column, that is to say the
 		 * leftmost column of pixels of the input frame.
 		 */
+		if (numW == numW2) {
+			if (numW2 > denomW2 && denomW2 != 1)
+			outputW -= numW2 / denomW2;
+		} else {
 		if (numW > denomW && denomW != 1)
 			outputW -= numW / denomW;
+		}
 	}
 
 	writel(ctrl, jzfb->ipu_base + IPU_CTRL);

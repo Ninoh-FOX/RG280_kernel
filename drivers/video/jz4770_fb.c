@@ -932,7 +932,6 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 
 		if (numW != 1 || denomW != 1) {
 			set_coefs(jzfb, IPU_HRSZ_COEF_LUT, numW, denomW);
-
 		if (!upscaling_w)
 			coef_index |= (denomW - 1) << 16;
 		else
@@ -943,7 +942,6 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		
 		if (numW2 != 1 || denomW2 != 1) {
 			set_coefs(jzfb, IPU_HRSZ_COEF_LUT, numW, denomW);
-
 		if (!upscaling_w)
 			coef_index |= (denomW - 1) << 16;
 		else
@@ -974,6 +972,24 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 
 		outputH = fb->var.yres * numH / denomH;
 		outputW = fb->var.xres * numW / denomW;
+		
+		/* NEOGEO HW patch resolution 304x224*/
+		
+		if ((fb->var.xres == 320) && (fb->var.yres == 224))
+		{
+		printk("Ninoh's magic\n");
+		outputW -= 16;
+		}
+		
+		/* GAMEBOY HW 1.50X patch resolution 208x160*/
+		
+		if ((fb->var.xres == 224) && (fb->var.yres == 160))
+		{
+		printk("Ninoh's magic\n");
+		outputW -= 24; /* 16*1,5=24 */
+		}
+		
+		
 #ifdef USE_VGA_HACK
 if (fb->var.xres == 368)
 {

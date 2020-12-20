@@ -126,7 +126,7 @@ struct jzfb {
 
 static void *lcd_frame1;
 static bool keep_aspect_ratio = true;
-static bool allow_downscaling = true;
+static bool allow_downscaling = false;
 static bool integer_scaling = false;
 
 
@@ -976,6 +976,22 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		/* NEOGEO HW patch resolution 304x224*/
 		
 		if ((fb->var.xres == 320) && (fb->var.yres == 224))
+		{
+		printk("Ninoh's magic\n");
+		outputW -= 16;
+		}
+		
+		/* FBA HW patch resolution 336x240*/
+		
+		if ((fb->var.xres == 352) && (fb->var.yres == 240))
+		{
+		printk("Ninoh's magic\n");
+		outputW -= 16;
+		}
+		
+		/* FBA HW patch resolution 368x232*/
+		
+		if ((fb->var.xres == 384) && (fb->var.yres == 240))
 		{
 		printk("Ninoh's magic\n");
 		outputW -= 16;

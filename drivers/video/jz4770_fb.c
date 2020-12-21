@@ -17,8 +17,6 @@
  * published by the Free Software Foundation.
  */
 
-
-//#define USE_VGA_HACK
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/spinlock.h>
@@ -125,7 +123,7 @@ struct jzfb {
 };
 
 static void *lcd_frame1;
-static bool keep_aspect_ratio = true;
+static bool keep_aspect_ratio = false;
 static bool allow_downscaling = false;
 static bool integer_scaling = false;
 
@@ -443,15 +441,10 @@ static int reduce_fraction(unsigned int *num, unsigned int *denom)
 {
 	unsigned long d = gcd(*num, *denom);
 
-	/* The scaling table has only 31 entries */
-#ifdef USE_VGA_HACK
+	/* this defined the scaling table entries */
+	
 	if (*num > 40 * d)
 		return -EINVAL;
-
-#else
-	if (*num > 31 * d)
-		return -EINVAL;
-#endif
 	*num /= d;
 	*denom /= d;
 	return 0;
@@ -972,47 +965,7 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 
 		outputH = fb->var.yres * numH / denomH;
 		outputW = fb->var.xres * numW / denomW;
-		
-		/* NEOGEO HW patch resolution 304x224*/
-		
-		if ((fb->var.xres == 320) && (fb->var.yres == 224))
-		{
-		printk("Ninoh's magic\n");
-		outputW -= 16;
-		}
-		
-		/* FBA HW patch resolution 336x240*/
-		
-		if ((fb->var.xres == 352) && (fb->var.yres == 240))
-		{
-		printk("Ninoh's magic\n");
-		outputW -= 16;
-		}
-		
-		/* FBA HW patch resolution 368x232*/
-		
-		if ((fb->var.xres == 384) && (fb->var.yres == 240))
-		{
-		printk("Ninoh's magic\n");
-		outputW -= 16;
-		}
-		
-		/* GAMEBOY HW 1.50X patch resolution 208x160*/
-		
-		if ((fb->var.xres == 224) && (fb->var.yres == 160))
-		{
-		printk("Ninoh's magic\n");
-		outputW -= 24; /* 16*1,5=24 */
-		}
-		
-		
-#ifdef USE_VGA_HACK
-if (fb->var.xres == 368)
-{
-printk("TONY's magic\n");
-outputW -= 64;
-}
-#endif
+
 		/*
 		 * If we are upscaling horizontally, the last columns of pixels
 		 * shall be hidden, as they usually contain garbage: the last

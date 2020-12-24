@@ -964,7 +964,7 @@ static void jzfb_ipu_configure(struct jzfb *jzfb)
 		}
 
 		outputH = fb->var.yres * numH / denomH;
-		outputW = fb->var.xres * numW / denomW;
+		outputW = fb->var.xres_virtual * numW / denomW;
 
 		/*
 		 * If we are upscaling horizontally, the last columns of pixels

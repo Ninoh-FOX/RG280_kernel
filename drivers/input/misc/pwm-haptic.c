@@ -50,8 +50,8 @@ static int pwm_haptic_play(struct input_dev *input, void *data,
 	unsigned int level;
 	u64 duty;
 
-	strong_level = (strong_level > 0) ? (strong_level - (strong_level >> 2)) + (0x7FFF >> 2) : 0x0;
-	weak_level = (weak_level > 0) ? (weak_level - (weak_level >> 2)) + (0x7FFF >> 2) : 0x0;
+	strong_level = (strong_level > 0) ? (2 * strong_level / 3) + (0x7FFF / 3) : 0x0;
+	weak_level = (weak_level > 0) ? (2 * weak_level / 3) + (0x7FFF / 3) : 0x0;
 	level = (2 * strong_level / 3) + (weak_level / 3);
 
 	dev_dbg(haptic->dev, "Configuring PWM for %u%%\n", (level * 100) >> 16);

@@ -65,6 +65,10 @@
 
 
 /* Video */
+
+#define GPIO_PANEL_BACKLIGHT	JZ_GPIO_PORTE(1)
+#define GPIO_PANEL_SOMETHING	JZ_GPIO_PORTF(0)
+
 static int gcw0_panel_init(void **out_panel,
 				     struct device *dev, void *panel_pdata)
 {

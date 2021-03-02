@@ -557,8 +557,8 @@ static struct platform_device gcw0_i2c4_gpio_device = {
 
 static struct platform_pwm_backlight_data gcw0_backlight_pdata = {
 	.polarity = PWM_POLARITY_NORMAL,
-	.max_brightness = 150,
-	.dft_brightness = 100,
+	.max_brightness = 255,
+	.dft_brightness = 150,
 	.pwm_period_ns = 50000, /* 25 kHz: outside human hearing range */
 };
 
